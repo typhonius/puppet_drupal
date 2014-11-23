@@ -1,28 +1,17 @@
 class docroot {
 
-  if ! defined(File['/var/www']) {
-    file { '/var/www':
-      ensure => 'directory',
-    }
+  file { '/var/www':
+    ensure => 'directory',
   }
-  if ! defined(File['/var/www/html']) {
-    file { '/var/www/html':
-      ensure => 'directory',
-    }
-  }
-  if ! defined(File["/var/www/repo"]) {
-    file { "/var/www/repo":
-      ensure => 'directory',
-    }
+
+  file { '/var/www/html':
+    ensure => 'directory',
+    require => File['/var/www'],
   }
 
   file { '/var/www/fpm':
     ensure  => 'directory',
     require => File['/var/www'],
-  }
-
-  file { '/var/www/site-settings-php':
-    ensure => 'directory',
   }
 
   class {'apache':
@@ -97,8 +86,8 @@ class docroot {
 
   apache::vhost { 'drupal':
     docroot     => '/var/www/html/drupal',
-    docroot_owner => 'drupal',
-    docroot_group => $apache,
+    docroot_owner => $apache,
+    docroot_group => 'drupal',
     port => 80,
     fastcgi_server => '/var/www/fpm/drupal -pass-header Authorization -idle-timeout 600',
     fastcgi_socket => '/var/run/drupal-php-fpm.sock',
@@ -144,5 +133,59 @@ class docroot {
 #    require => [ File['/var/www/fpm/seedbox-ssl'], Exec['self signed cert seed.glo5.com'] ]
 #  }
 
+#file { '/etc/init.d/mysqld':
+#   ensure => 'link',
+#   target => '/etc/init.d/mysql',
+#}
+ 
+#class { 'mysql': 
+#  require 	=> [ Yumrepo["Percona"], File['/etc/init.d/mysqld'] ],
+#  package_name => 'Percona-Server-client-55',
+#  package_ensure => latest,
+#}
+ 
+#class { 'mysql::server': 
+#  require 	=> [ Yumrepo["Percona"], File['/etc/init.d/mysqld'] ],
+#  package_name => 'Percona-Server-server-55',
+#  package_ensure => latest,
+#  service_name => 'mysql',
+#  config_hash => {
+#    'pidfile'     => '/var/lib/mysql/localhost.localdomain.pid',
+#    'bind_address' => '0.0.0.0',
+#  },
+
+  exec {'rsync drupal to docroot':
+    path    => '/usr/bin',
+    command => "rsync -avPh --exclude='.git' /var/www/repo/drupal/ /var/www/html/drupal/",
+    creates => '/var/www/html/drupal/index.php',
+  }
+
+  file {'/var/www/html/drupal/sites/default/files':
+    ensure  => directory,
+    require => Exec['rsync drupal to docroot'],
+    owner   => 'drupal',
+    group   => 'drupal',
+    mode    => 0750,
+  }
+
+#  file {'/var/www/html/drupal/sites/default/settings.php':
+#    ensure   => present,
+#    replace  => false,
+#    content  => template('docroot/settings-php.erb'),
+#    require => Exec['rsync drupal to docroot'],
+#  }
+
+  # Set all the permissions
+  $permissions = [
+    'find /var/www/html/drupal/ -type d -not -path "/var/www/html/drupal/sites/default/files" -exec chown www-data:drupal {} \; -exec chmod 550 {} \;',
+    'find /var/www/html/drupal/ -type f -not -path "/var/www/html/drupal/sites/default/files" -exec chown www-data:drupal {} \; -exec chmod 440 {} \;',
+    'find /var/www/html/drupal/sites/default/files/ -type d -exec chown drupal:drupal {} \; -exec chmod 775 {} \;',
+    'find /var/www/html/drupal/sites/default/files/ -type f -exec chown drupal:drupal {} \; -exec chmod 664 {} \;',
+  ]
+
+  exec {$permissions:
+    require => Exec['rsync drupal to docroot'],
+    path    => ['/bin', '/usr/bin'],
+  }
 }
 

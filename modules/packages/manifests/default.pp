@@ -14,6 +14,7 @@ class packages::default {
     'nmap',
     'nethogs',
     'openssh-server',
+    'percona-toolkit',
     'screen',
     'socat',
     'strace',

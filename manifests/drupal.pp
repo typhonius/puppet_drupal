@@ -10,6 +10,7 @@ node default {
   include users::drupal
 
   include packages::php
+  include repos::drupalcore
   include docroot
 
   # include drush
