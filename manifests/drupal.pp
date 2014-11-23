@@ -2,13 +2,14 @@
 node default {
   include misc
   include packages::default
+  include packages::sshd
 
   include users::groups
   include users::sudoers
   include users::root
   include users::drupal
 
-  include packages::sshd
+  include packages::php
   include docroot
 
   # include drush
