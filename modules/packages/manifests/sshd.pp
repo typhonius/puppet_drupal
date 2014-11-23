@@ -7,7 +7,20 @@ class packages::sshd {
     mode    => '0600',
     content => template('packages/sshd_config.erb'),
   }
-  service { 'sshd':
+
+  case $::osfamily {
+    'debian': {
+      $service              = 'ssh'
+    }
+    'redhat': {
+      $service              = 'sshd'
+    }
+    default: {
+      fail("Unsupported osfamily ${::osfamily}")
+    }
+  }
+
+  service { $service:
     ensure    => running,
     enable    => true,
     subscribe => File['/etc/ssh/sshd_config'],

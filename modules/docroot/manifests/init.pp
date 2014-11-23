@@ -62,12 +62,5 @@ include apache::mod::status
   apache::mod { 'authn_file': }
   apache::mod { 'authz_user': }
 
-  # Include a default docroot
-  $id = regsubst($::fqdn, '^([a-z0-9]+)(.*)', '\1', 'G')
-  misc::docroot::docroot{ "${id}":
-    user    => 'drupal',
-    domain  => "$::fqdn",
-    default => true,
-  }
 }
 
