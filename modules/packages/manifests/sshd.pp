@@ -13,3 +13,4 @@ class packages::sshd {
     enable    => true,
     subscribe => File['/etc/ssh/sshd_config'],
   }
+}
