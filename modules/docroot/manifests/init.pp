@@ -133,26 +133,23 @@ class docroot {
 #    require => [ File['/var/www/fpm/seedbox-ssl'], Exec['self signed cert seed.glo5.com'] ]
 #  }
 
-#file { '/etc/init.d/mysqld':
-#   ensure => 'link',
-#   target => '/etc/init.d/mysql',
-#}
+  file { '/etc/init.d/mysqld':
+    ensure => 'link',
+    target => '/etc/init.d/mysql',
+  }
  
-#class { 'mysql': 
-#  require 	=> [ Yumrepo["Percona"], File['/etc/init.d/mysqld'] ],
-#  package_name => 'Percona-Server-client-55',
-#  package_ensure => latest,
-#}
+#  class { 'mysql': 
+#    require 	=> [ Apt::Source["percona"], File['/etc/init.d/mysqld'] ],
+#    package_name => 'Percona-Server-client-55',
+#    package_ensure => latest,
+#  }
  
-#class { 'mysql::server': 
-#  require 	=> [ Yumrepo["Percona"], File['/etc/init.d/mysqld'] ],
-#  package_name => 'Percona-Server-server-55',
-#  package_ensure => latest,
-#  service_name => 'mysql',
-#  config_hash => {
-#    'pidfile'     => '/var/lib/mysql/localhost.localdomain.pid',
-#    'bind_address' => '0.0.0.0',
-#  },
+  class { 'mysql::server': 
+    require 	=> [ Apt::Source["percona"], File['/etc/init.d/mysqld'] ],
+    package_name => 'percona-server-server-5.6',
+    package_ensure => latest,
+    service_name => 'mysql',
+  }
 
   exec {'rsync drupal to docroot':
     path    => '/usr/bin',
