@@ -72,25 +72,27 @@ class docroot {
   apache::mod { 'authn_file': }
   apache::mod { 'authz_user': }
 
-  file { '/var/www/fpm/drupal':
-    ensure => 'link',
-    target => '/usr/sbin/php-fpm',
-  }
-  file { '/var/www/fpm/drupal-ssl':
-    ensure => 'link',
-    target => '/usr/sbin/php-fpm',
-  }
-
   case $::osfamily {
     'debian': {
       $apache              = 'www-data'
+      $fpm                 = 'php5-fpm'
     }
     'redhat': {
       $apache              = 'apache'
+      $fpm                 = 'php-fpm'
     }
     default: {
       fail("Unsupported osfamily ${::osfamily}")
     }
+  }
+
+  file { '/var/www/fpm/drupal':
+    ensure => 'link',
+    target => "/usr/sbin/${fpm}",
+  }
+  file { '/var/www/fpm/drupal-ssl':
+    ensure => 'link',
+    target => "/usr/sbin/${fpm}",
   }
 
   apache::vhost { 'drupal':
