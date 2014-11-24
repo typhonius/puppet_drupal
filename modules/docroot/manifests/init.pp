@@ -155,6 +155,7 @@ class docroot {
     path    => '/usr/bin',
     command => "rsync -avPh --exclude='.git' /var/www/repo/drupal/ /var/www/html/drupal/",
     creates => '/var/www/html/drupal/index.php',
+    require => Vcsrepo['/var/www/repo/drupal'],
   }
 
   file {'/var/www/html/drupal/sites/default/files':
